@@ -33,7 +33,6 @@ wss.on("connection", (socket) => {
   socket.on("message", (message) => {
     try {
       const { type, payload } = JSON.parse(message);
-      console.log(socket.nickname);
       switch (type) {
         case "new_msg":
           sockets.forEach((aSocket) =>
