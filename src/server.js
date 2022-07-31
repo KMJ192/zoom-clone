@@ -19,16 +19,45 @@ const server = http.createServer(app);
 
 const wss = new WebSocket.Server({ server });
 
-wss.on("connection", (socket) => {
-  console.log("connect to browser");
+const sockets = [];
 
-  socket.on("close", () => {
-    console.log("disconnect from browser");
-  });
+function onSocketClose() {
+  console.log("disconnect from browser");
+}
+
+wss.on("connection", (socket) => {
+  sockets.push(socket);
+  socket["nickname"] = "annon";
+  console.log("connect to browser");
+  socket.on("close", onSocketClose);
   socket.on("message", (message) => {
-    console.log(message.toString("utf-8"));
+    try {
+      const { type, payload } = JSON.parse(message);
+      console.log(socket.nickname);
+      switch (type) {
+        case "new_msg":
+          sockets.forEach((aSocket) =>
+            aSocket.send(`${socket.nickname} : ${payload}`)
+          );
+          return;
+        case "nickname":
+          socket["nickname"] = payload;
+          return;
+      }
+    } catch (e) {
+      console.log(e);
+    }
   });
-  socket.send("hello");
 });
 
 server.listen(3000, handleListen);
+
+// {
+//   type: 'message',
+//   payload: 'hello everyone'
+// }
+
+// {
+//   type: 'nickname',
+//   payload: 'hello everyone'
+// }
