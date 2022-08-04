@@ -1,5 +1,5 @@
-import http from "http";
 // import WebSocket from "ws";
+import http from "http";
 import SocketIO from "socket.io";
 import express from "express";
 
@@ -14,6 +14,8 @@ app.get("/", (_, res) => res.render("home"));
 app.get("/*", (_, res) => res.redirect("/"));
 
 const httpServer = http.createServer(app);
+
+// 2. Socket.io
 const wsServer = SocketIO(httpServer);
 
 function publicRooms() {
@@ -71,6 +73,7 @@ wsServer.on("connection", (socket) => {
   socket.on("nickname", (nickname) => (socket["nickname"] = nickname));
 });
 
+// 1. Web Socket
 // const wss = new WebSocket.Server({ server: httpServer });
 // const sockets = [];
 // function onSocketClose() {
