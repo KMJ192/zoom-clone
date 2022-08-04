@@ -10,7 +10,10 @@ html(lang="en")
     header
       h1 Noom
     main
-      video#myFace(autoplay, playsinLine)
+      div#myStream
+        video#myFace(autoplay, playsinline, width='400', height='400')
+        button#mute Mute
+        button#camera Turn Camera Off
     //- 2. Socket.io
     //- div#welcome
     //-   form
@@ -27,7 +30,6 @@ html(lang="en")
     //-   form#msg
     //-     input(placeholder="message", require, type="text")
     //-     button Send
-
     //- 1. Web socket
     //- header
     //-   h1 Noom 
@@ -40,4 +42,4 @@ html(lang="en")
     //-     input(type='text', placeholder='write a msg', require)
     //-     button Send
     script(src="/socket.io/socket.io.js") 
-    script(src="/public/js/app.js") 
+    script(src="/public/js/app.js")
