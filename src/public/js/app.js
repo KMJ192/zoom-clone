@@ -136,9 +136,16 @@ const muteBtn = ms.querySelector("#mute");
 const cameraBtn = ms.querySelector("#camera");
 const camerasSelect = document.getElementById("cameras");
 
+const welcome = document.getElementById("welcome");
+const call = document.getElementById("call");
+call.hidden = true;
+const welcomForm = welcome.querySelector("form");
+
 let myStream;
 let muted = false;
 let cameraOff = false;
+let roomName;
+let myPeerConnection;
 
 function handleMuteClick() {
   myStream
@@ -214,8 +221,44 @@ async function handleCameraChange() {
   await getMedia(camerasSelect.value);
 }
 
+async function startMedia() {
+  welcome.hidden = true;
+  call.hidden = false;
+  await getMedia();
+  makeConnection();
+}
+
+function handleWelcomeSubmit(event) {
+  event.preventDefault();
+  const input = welcomForm.querySelector("input");
+  socket.emit("join_room", input.value, startMedia);
+  roomName = input.value;
+  input.value = "";
+}
+
 muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
 camerasSelect.addEventListener("input", handleCameraChange);
 
-getMedia();
+socket.on("welcome", async () => {
+  const offer = await myPeerConnection.createOffer();
+  myPeerConnection.setLocalDescription(offer);
+  socket.emit("offer", offer, roomName);
+  console.log("sent the offer");
+});
+
+socket.on("offer", (offer) => {
+  console.log(offer);
+});
+
+// RTC Code
+function makeConnection() {
+  myPeerConnection = new RTCPeerConnection();
+  myStream
+    .getTracks()
+    .forEach((track) => myPeerConnection.addTrack(track, myStream));
+}
+
+// entry point
+// 시작 페이지에서 room 이름을 입력하고 접속
+welcomForm.addEventListener("submit", handleWelcomeSubmit);

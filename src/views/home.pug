@@ -6,15 +6,20 @@ html(lang="en")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
     title Noom
     link(rel="stylesheet", href="https://unpkg.com/mvp.css")
-  body 
+  body
     header
       h1 Noom
     main
-      div#myStream
-        video#myFace(autoplay, playsinline, width='400', height='400')
-        button#mute Mute
-        button#camera Turn Camera Off
-        select#cameras
+      div#welcome
+        form(action="") 
+          input(placeholder='room name', require, type='text')
+          button Enter room
+      div#call
+        div#myStream
+          video#myFace(autoplay, playsinline, width='400', height='400')
+          button#mute Mute
+          button#camera Turn Camera Off
+          select#cameras
     //- 2. Socket.io
     //- div#welcome
     //-   form

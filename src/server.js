@@ -15,9 +15,22 @@ app.get("/*", (_, res) => res.redirect("/"));
 
 const httpServer = http.createServer(app);
 
-// 2. Socket.io
 const wsServer = SocketIO(httpServer);
 
+// 3. WebRTC
+wsServer.on("connection", (socket) => {
+  socket.on("join_room", (roomName, done) => {
+    socket.join(roomName);
+    done();
+    socket.to(roomName).emit("welcome");
+  });
+
+  socket.on("offer", (offer, roomName) => {
+    socket.to(roomName).emit("offer", offer);
+  });
+});
+
+// 2. Socket.io
 // function publicRooms() {
 //   const {
 //     sockets: {
