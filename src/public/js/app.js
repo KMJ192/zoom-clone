@@ -219,19 +219,28 @@ async function getMedia(deviceId) {
 
 async function handleCameraChange() {
   await getMedia(camerasSelect.value);
+  if (myPeerConnection) {
+    const videoTrack = myStream.getVideoTracks()[0];
+    const videoSender = myPeerConnection
+      .getSenders()
+      .find((sender) => sender.track.kind === "video");
+
+    videoSender.replaceTrack(videoTrack);
+  }
 }
 
-async function startMedia() {
+async function initCall() {
   welcome.hidden = true;
   call.hidden = false;
   await getMedia();
   makeConnection();
 }
 
-function handleWelcomeSubmit(event) {
+async function handleWelcomeSubmit(event) {
   event.preventDefault();
   const input = welcomForm.querySelector("input");
-  socket.emit("join_room", input.value, startMedia);
+  await initCall();
+  socket.emit("join_room", input.value);
   roomName = input.value;
   input.value = "";
 }
@@ -247,13 +256,42 @@ socket.on("welcome", async () => {
   console.log("sent the offer");
 });
 
-socket.on("offer", (offer) => {
+socket.on("offer", async (offer) => {
   myPeerConnection.setRemoteDescription(offer);
+  const answer = await myPeerConnection.createAnswer();
+  myPeerConnection.setLocalDescription(answer);
+  socket.emit("answer", answer, roomName);
+  console.log("sent the answer");
 });
+
+socket.on("answer", (answer) => {
+  console.log("recived the answer");
+  myPeerConnection.setRemoteDescription(answer);
+});
+
+socket.on("ice", (ice) => {
+  console.log("recived candidate");
+  myPeerConnection.addIceCandidate(ice);
+});
+
+function handleIce(data) {
+  console.log("send candidate");
+  socket.emit("ice", data.candidate, roomName);
+}
+
+function handleAddStream(data) {
+  const peerStream = document.getElementById("peerStream");
+  // console.log("get an event from my peer");
+  // console.log("Peers Stream", data.stream);
+  // console.log("my stream", myStream);
+  peerStream.srcObject = data.stream;
+}
 
 // RTC Code
 function makeConnection() {
   myPeerConnection = new RTCPeerConnection();
+  myPeerConnection.addEventListener("icecandidate", handleIce);
+  myPeerConnection.addEventListener("addstream", handleAddStream);
   myStream
     .getTracks()
     .forEach((track) => myPeerConnection.addTrack(track, myStream));
